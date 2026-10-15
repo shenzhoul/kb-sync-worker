@@ -1,97 +1,41 @@
-\# Knowledge Base Sync
+# Knowledge Base Sync
 
+A one-shot Python worker that syncs public OptiSigns Help Center articles to Markdown and indexes changed documents in Google Gemini File Search.
 
+## How it works
+- Fetches published articles through the Help Center API and converts HTML to Markdown, preserving headings, links, and code.
+- Tracks timestamps and SHA-256 hashes in `state/manifest.json`.
+- First run indexes up to 30 article bodies and records remaining articles as a metadata baseline. Later runs index only new or changed articles and replace existing indexed documents when needed.
+- Logs added, updated, skipped, uploaded, and estimated chunk counts. Gemini File Search handles chunking; configured size is 400 tokens with 40-token overlap. Chunk counts are estimates.
 
-A one-shot Python worker that synchronizes public OptiSigns Help Center articles to Markdown and indexes changed documents in Google Gemini File Search.
+## Run locally
 
-
-
-\## How it works
-
-
-
-\- Fetches published article metadata from the public Help Center API.
-
-\- Converts article HTML to Markdown while preserving headings, links, and code.
-
-\- Tracks article timestamps and SHA-256 hashes in `state/manifest.json`.
-
-\- On the initial run, indexes up to 30 article bodies and records the remaining articles as a metadata baseline.
-
-\- On later runs, downloads and indexes only new or changed articles. Existing indexed documents are replaced when needed.
-
-\- Logs added, updated, skipped, uploaded, and estimated chunk counts.
-
-
-
-Gemini File Search handles document chunking and retrieval. The configured chunk size is 400 tokens with 40 tokens of overlap. Chunk counts in logs are estimates, not exact provider-reported counts.
-
-
-
-\## Run locally
-
-
-
-Requirements: Python 3.12+ and a Gemini API key with access to File Search.
-
-
+Requires Python 3.12+ and a Gemini API key with File Search access.
 
 ```bash
-
 pip install -r requirements.txt
-
-```
-
-
-
-Create `.env` with `GEMINI\_API\_KEY=your\_key`. Optionally set `GEMINI\_FILE\_SEARCH\_STORE` to reuse an existing store. Run:
-
-
-
-```bash
-
 python main.py
-
 ```
 
+Configure `GEMINI_API_KEY` in `.env`. Optionally set `GEMINI_FILE_SEARCH_STORE` to reuse a store. Exit code is `0` on success and `1` on failure. Logs are written to `logs/`.
 
-
-The worker exits with code `0` on success and `1` on failure. Logs are written to `logs/`.
-
-
-
-\## Run with Docker
-
-
+## Run with Docker
 
 ```bash
-
 docker build -t kb-sync-worker .
-
-docker run --rm -e API\_KEY -e GEMINI\_FILE\_SEARCH\_STORE kb-sync-worker
-
+docker run --rm -e API_KEY -e GEMINI_FILE_SEARCH_STORE kb-sync-worker
 ```
 
+Set both environment variables before running. Mount `state/` and `logs/` for persistence.
 
+## Daily automation
 
-Set `API\_KEY` and `GEMINI\_FILE\_SEARCH\_STORE` in the environment before running. Mount `state/` and `logs/` as volumes when persistence is needed.
+GitHub Actions runs daily and supports manual runs. Configure repository secrets `GEMINI_API_KEY` and `GEMINI_FILE_SEARCH_STORE`. Logs are uploaded as artifacts and retained for seven days.
 
+[View workflow runs and log artifacts](https://github.com/shenzhoul/kb-sync-worker/actions/workflows/daily-sync.yml)
 
+## Assistant test
 
-\## Daily automation
-
-
-
-GitHub Actions runs the worker on a daily schedule and supports manual runs through \*\*Actions → Daily Knowledge Base Sync → Run workflow\*\*. Configure repository secrets `GEMINI\_API\_KEY` and `GEMINI\_FILE\_SEARCH\_STORE`. Logs are uploaded as workflow artifacts and retained for seven days.
-
-[View workflow runs and download log artifacts](https://github.com/shenzhoul/kb-sync-worker/actions/workflows/daily-sync.yml)
+YouTube Q&A verified with Gemini File Search and a matching source citation. [Screenshot](evidence/optibot-youtube-answer.png)
 
 Never commit `.env` or API keys.
-
-
-## Assistant test evidence
-
-Tested “How do I add a YouTube video?” using Gemini File Search. The answer provides five steps and cites the matching OptiSigns support article.
-
-![OptiBot answer with File Search citation](evidence/optibot-youtube-answer.png)
-
