@@ -84,7 +84,7 @@ Set `API\_KEY` and `GEMINI\_FILE\_SEARCH\_STORE` in the environment before runni
 
 GitHub Actions runs the worker on a daily schedule and supports manual runs through \*\*Actions → Daily Knowledge Base Sync → Run workflow\*\*. Configure repository secrets `GEMINI\_API\_KEY` and `GEMINI\_FILE\_SEARCH\_STORE`. Logs are uploaded as workflow artifacts and retained for seven days.
 
-
+[View workflow runs and download log artifacts](https://github.com/shenzhoul/kb-sync-worker/actions/workflows/daily-sync.yml)
 
 Never commit `.env` or API keys.
 
