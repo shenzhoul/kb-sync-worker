@@ -88,3 +88,10 @@ GitHub Actions runs the worker on a daily schedule and supports manual runs thro
 
 Never commit `.env` or API keys.
 
+
+## Assistant test evidence
+
+Tested “How do I add a YouTube video?” using Gemini File Search. The answer provides five steps and cites the matching OptiSigns support article.
+
+![OptiBot answer with File Search citation](evidence/optibot-youtube-answer.png)
+
