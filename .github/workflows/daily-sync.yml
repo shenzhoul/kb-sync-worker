@@ -1,0 +1,51 @@
+
+name: Daily Knowledge Base Sync
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Restore previous sync manifest
+        uses: actions/cache@v4
+        with:
+          path: state/manifest.json
+          key: sync-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            sync-state-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run sync
+        env:
+          API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_FILE_SEARCH_STORE: ${{ secrets.GEMINI_FILE_SEARCH_STORE }}
+        run: python main.py
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-sync-logs
+          path: logs/
+          if-no-files-found: warn
+          retention-days: 7
